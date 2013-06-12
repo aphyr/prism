@@ -46,7 +46,7 @@
    (watch! dir {} f))
   ([dir opts f]
    (let [root (-> opts
-                  (get :root "./src")
+                  (get :root dir)
                   file
                   .getCanonicalPath
                   ensure-trailing-slash)]
