@@ -1,23 +1,57 @@
 (ns prism.core
-  (:use [ojo.impl :only [create-watch]])
-  (:require ojo.watch))
+  (:use [clojure.java.io :only [file]])
+  (:require [filevents.core :as fe]
+            [clojure.string :as s]))
+
+(defn not-deleted
+  [kind file]
+  (condp = kind
+    :created  file
+    :modified file
+    :deleted  nil))
+
+(defn file->ns
+  "Returns a namespace symbol corresponding to the file."
+  [root f]
+  (when f
+    (let [path (.getCanonicalPath (file f))]
+      (when (re-find #"\.clj$" path)
+        (-> path
+            str
+            ; Strip root prefix
+            (s/replace root "")
+            ; Drop clj
+            (s/replace #".clj$" "")
+            ; Underscores to dashes
+            (s/replace "_" "-")
+            ; Slashes to dots
+            (s/replace "/" ".")
+            symbol)))))
+
+(defn reload
+  "Reloads a namespace symbol and returns that symbol."
+  [sym]
+  (when sym
+    (require sym :reload)
+    sym))
+
+(defn ensure-trailing-slash
+  [s]
+  (s/replace s #"([^/])$" "$1/"))
 
 (defn watch!
-  "Watches directory and reloads clojure files, invoking (f
-  list-of-namespaces) after reloading"
+  "Watches directory and reloads clojure files, invoking (f namespace) after
+  reloading. Returns a future."
   ([dir f]
    (watch! dir {} f))
   ([dir opts f]
-   (let [dir [dir [["*.clj"]]]
-         resp (fn [x]
-                (prn x))
-         opts (merge {:worker-poll-ms 500
-                      :worker-count 1
-                      :respond resp}
-                     opts)
-         watch (apply create-watch dir [:create :modify]
-                      (mapcat identity opts))]
-;     (future (ojo.watch/start-watch watch))
-     watch)))
-
-(def cease-watch ojo.watch/cease-watch)
+   (let [root (-> opts
+                  (get :root "./src")
+                  file
+                  .getCanonicalPath
+                  ensure-trailing-slash)]
+     (fe/watch-dir dir
+                   (comp #(when % (f %))
+                         reload
+                         (partial file->ns root)
+                         not-deleted)))))
