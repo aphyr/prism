@@ -43,7 +43,8 @@
       sym
       (catch Exception e
         (println "Failed to reload " file)
-        (stacktrace/print-cause-trace e)))))
+        (stacktrace/print-cause-trace e)
+        nil))))
 
 (defn ensure-trailing-slash
   [s]
