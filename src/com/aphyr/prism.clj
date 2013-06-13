@@ -6,6 +6,8 @@
             [clojure.stacktrace :as stacktrace]
             [clojure.test :as test]))
 
+(defonce mutex (Object.))
+
 (defn not-deleted
   [kind file]
   (case kind
@@ -35,7 +37,8 @@
   "Reloads a namespace symbol and returns that symbol."
   [sym]
   (when sym
-    (require sym :reload)
+    (locking mutex
+      (require sym :reload))
     sym))
 
 (defn ensure-trailing-slash
@@ -72,11 +75,13 @@
    (doseq [dir src-dirs]
      (watch! dir (fn [n]
                    (let [test-ns (symbol (str n "-test"))]
-                     (try (require test-ns) (catch Exception e nil))
+                     (try (reload test-ns) (catch Exception e nil))
                      (when (find-ns test-ns)
-                       (test/run-tests test-ns))))))
+                       (locking mutex
+                         (test/run-tests test-ns)))))))
 
    ; Test dirs
    (doseq [dir test-dirs]
      (watch! dir (fn [n]
-                   (test/run-tests n))))))
+                   (locking mutex
+                     (test/run-tests n)))))))
