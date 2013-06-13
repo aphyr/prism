@@ -12,7 +12,8 @@ sure it's not dangerous.
 
 ## Usage
 
-Add Prism to `~/.lein/profiles.clj`:
+Check out [Clojars](https://clojars.org/com.aphyr/prism) for the latest
+version number, then add Prism to `~/.lein/profiles.clj`:
 
 ```
 {:user
