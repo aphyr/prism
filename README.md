@@ -1,7 +1,14 @@
 # Prism
 
-When you save .clj files, Prism automatically reloads namespaces and re-runs
-the appropriate clojure.test tests. Like the NSA, it may or may not be snooping on everything you write, and checking to make sure it's not dangerous.
+Running tests with `lein test` means waiting for the JVM startup, and waiting
+for the project to compile. Prism recompiles and reloads files as you change
+them, and re-runs their corresponding tests immediately. Inspired by Midje's
+excellent autotest.
+
+## Why "Prism"?
+
+It may or may not be snooping on everything you write, and checking to make
+sure it's not dangerous.
 
 ## Usage
 
