@@ -38,6 +38,7 @@
   [sym]
   (when sym
     (locking mutex
+      (println "Reloading" sym "...")
       (require sym :reload))
     sym))
 
