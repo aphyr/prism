@@ -33,14 +33,17 @@
             (s/replace "/" ".")
             symbol)))))
 
-(defn reload
+(defn reload!
   "Reloads a namespace symbol and returns that symbol."
   [sym]
   (when sym
-    (locking mutex
+    (try
       (println "Reloading" sym "...")
-      (require sym :reload))
-    sym))
+      (require sym :reload)
+      sym
+      (catch Exception e
+        (println "Failed to reload " file)
+        (stacktrace/print-cause-trace e)))))
 
 (defn ensure-trailing-slash
   [s]
@@ -58,14 +61,15 @@
                   .getCanonicalPath
                   ensure-trailing-slash)]
      (fe/watch-dir dir (bound-fn [kind file]
-                         (try
-                           (when-let [n (->> (not-deleted kind file)
-                                             (file->ns root)
-                                             reload)]
-                             (f n))
-                           (catch Exception e
-                             (println "Failed to reload " file)
-                             (stacktrace/print-cause-trace e))))))))
+                         (locking mutex
+                           (try
+                             (when-let [n (->> (not-deleted kind file)
+                                               (file->ns root)
+                                               reload!)]
+                               (f n))
+                             (catch Exception e
+                               (println "Failed to reload " file)
+                               (stacktrace/print-cause-trace e)))))))))
 
 (defn autotest!
   "Watches directories and re-runs tests after reloading."
@@ -76,13 +80,11 @@
    (doseq [dir src-dirs]
      (watch! dir (fn [n]
                    (let [test-ns (symbol (str n "-test"))]
-                     (try (reload test-ns) (catch Exception e nil))
-                     (when (find-ns test-ns)
-                       (locking mutex
-                         (test/run-tests test-ns)))))))
-
+                   (if (reload! test-ns)
+                     (test/run-tests test-ns))
+                     (println "No test namespace" test-ns
+                              "- doing nothing.")))))
    ; Test dirs
    (doseq [dir test-dirs]
      (watch! dir (fn [n]
-                   (locking mutex
-                     (test/run-tests n)))))))
+                     (test/run-tests n))))))
