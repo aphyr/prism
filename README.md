@@ -24,6 +24,10 @@ Then, just run `lein prism` in your project directory. It'll do a full test
 first, then as you write .clj files, it'll re-run the corresponding test
 namespace. Prism assumes your tests are named `foo.core-test`.
 
+## Brought to you by
+
+Raynes and Aphyr!
+
 ## Why "Prism"?
 
 It may be snooping on everything you write, and checking to make sure it's not
