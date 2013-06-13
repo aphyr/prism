@@ -1,5 +1,6 @@
 (ns leiningen.prism
-  (:require [leiningen.core.eval :as eval]))
+  (:require [leiningen.core.eval :as eval]
+            [leiningen.test :as test]))
 
 (defn prism
   "Automatically run tests when files change.
@@ -7,6 +8,10 @@
    Watches for file changes in your :source-paths and runs tests
    in your :test-paths when they change."
   [project]
+  ; Run tests
+  (test/test project)
+  
+  ; Watch for changes
   (let [[test-paths source-paths] (map project [:test-paths :source-paths])]
     (eval/eval-in-project project
                           `(p/autotest! '~source-paths '~test-paths)

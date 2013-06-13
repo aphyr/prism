@@ -71,7 +71,10 @@
    ; Source dirs
    (doseq [dir src-dirs]
      (watch! dir (fn [n]
-                   (test/run-tests (symbol (str n "-test"))))))
+                   (let [test-ns (symbol (str n "-test"))]
+                     (try (require test-ns) (catch Exception e nil))
+                     (when (find-ns test-ns)
+                       (test/run-tests test-ns))))))
 
    ; Test dirs
    (doseq [dir test-dirs]
