@@ -38,8 +38,9 @@
   [sym]
   (when sym
     (try
-      (println "Reloading" sym "...")
+      (print "Reloading" sym "...") (flush)
       (require sym :reload)
+      (println "done!")
       sym
       (catch Exception e
         (println "Failed to reload " file)
@@ -82,9 +83,9 @@
      (watch! dir (fn [n]
                    (let [test-ns (symbol (str n "-test"))]
                    (if (reload! test-ns)
-                     (test/run-tests test-ns))
+                     (test/run-tests test-ns)
                      (println "No test namespace" test-ns
-                              "- doing nothing.")))))
+                              "- doing nothing."))))))
    ; Test dirs
    (doseq [dir test-dirs]
      (watch! dir (fn [n]
