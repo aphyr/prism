@@ -72,7 +72,7 @@
    (doseq [dir src-dirs]
      (watch! dir (fn [n]
                    (test/run-tests (symbol (str n "-test"))))))
-   
+
    ; Test dirs
    (doseq [dir test-dirs]
      (watch! dir (fn [n]
