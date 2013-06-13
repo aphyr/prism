@@ -1,7 +1,10 @@
 (ns prism.core
+  (:refer-clojure :exclude [test])
   (:use [clojure.java.io :only [file]])
   (:require [filevents.core :as fe]
-            [clojure.string :as s]))
+            [clojure.string :as s]
+            [clojure.stacktrace :as stacktrace]
+            [clojure.test :as test]))
 
 (defn not-deleted
   [kind file]
@@ -50,8 +53,27 @@
                   file
                   .getCanonicalPath
                   ensure-trailing-slash)]
-     (fe/watch-dir dir
-                   (comp #(when % (f %))
-                         reload
-                         (partial file->ns root)
-                         not-deleted)))))
+     (fe/watch-dir dir (bound-fn [kind file]
+                         (try
+                           (when-let [n (->> (not-deleted kind file)
+                                             (file->ns root)
+                                             reload)]
+                             (f n))
+                           (catch Exception e
+                             (println "Failed to reload " file)
+                             (stacktrace/print-cause-trace e))))))))
+
+(defn autotest!
+  "Watches directories and re-runs tests after reloading."
+  ([]
+   (autotest! ["src"] ["test"]))
+  ([src-dirs test-dirs]
+   ; Source dirs
+   (doseq [dir src-dirs]
+     (watch! dir (fn [n]
+                   (test/run-tests (symbol (str n "-test"))))))
+   
+   ; Test dirs
+   (doseq [dir test-dirs]
+     (watch! dir (fn [n]
+                   (test/run-tests n))))))
