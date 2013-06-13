@@ -1,7 +1,7 @@
 (ns prism.core
   (:refer-clojure :exclude [test])
-  (:use [clojure.java.io :only [file]])
-  (:require [filevents.core :as fe]
+  (:require [clojure.java.io :refer [file]]
+            [filevents.core :as fe]
             [clojure.string :as s]
             [clojure.stacktrace :as stacktrace]
             [clojure.test :as test]))
