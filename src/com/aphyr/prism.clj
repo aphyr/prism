@@ -1,6 +1,6 @@
 (ns com.aphyr.prism
   (:refer-clojure :exclude [test])
-  (:require [clojure.java.io :refer [file]]
+  (:require [clojure.java.io :refer [file as-relative-path]]
             [filevents.core :as fe]
             [clojure.string :as s]
             [clojure.stacktrace :as stacktrace]
@@ -34,18 +34,26 @@
             symbol)))))
 
 (defn reload!
-  "Reloads a namespace symbol and returns that symbol."
-  [sym]
-  (when sym
-    (try
-      (print "Reloading" sym "...") (flush)
-      (require sym :reload)
-      (println "done!")
-      sym
-      (catch Exception e
-        (println "Failed to reload " file)
-        (stacktrace/print-cause-trace e)
-        nil))))
+  "Reloads a namespace symbol and returns that symbol. If complain? is true,
+  prints debugging info on error."
+  ([sym] (reload! sym true))
+  ([sym complain?]
+   (when sym
+     (try
+       (print "Reloading" sym "...") (flush)
+       (require sym :reload)
+       (println " done.")
+       sym
+       (catch Exception e
+         (println " failed.")
+         (when complain?
+           (println "Failed to reload" sym)
+           (if (re-find #"\.clj\:\d+" (.getMessage e))
+             ; Looks like a line number in a file.
+             (println (.getMessage e))
+             ; Dunno
+             (stacktrace/print-cause-trace e)))
+         nil)))))
 
 (defn ensure-trailing-slash
   [s]
@@ -63,15 +71,16 @@
                   .getCanonicalPath
                   ensure-trailing-slash)]
      (fe/watch-dir dir (bound-fn [kind file]
-                         (locking mutex
-                           (try
+                         (try
+                           (locking mutex
                              (when-let [n (->> (not-deleted kind file)
                                                (file->ns root)
                                                reload!)]
-                               (f n))
-                             (catch Exception e
-                               (println "Failed to reload " file)
-                               (stacktrace/print-cause-trace e)))))))))
+                               (f n)))
+                           (catch Exception e
+                             (println "Failed handling change in" file)
+                             (.printStackTrace e)))
+                         (flush))))))
 
 (defn autotest!
   "Watches directories and re-runs tests after reloading."
@@ -82,7 +91,7 @@
    (doseq [dir src-dirs]
      (watch! dir (fn [n]
                    (let [test-ns (symbol (str n "-test"))]
-                   (if (reload! test-ns)
+                   (if (reload! test-ns false)
                      (test/run-tests test-ns)
                      (println "No test namespace" test-ns
                               "- doing nothing."))))))

@@ -10,7 +10,7 @@
   [project]
   ; Run tests
   (try
-    (test/test project)
+  ;  (test/test project)
     (catch Throwable t nil))
   
   ; Watch for changes
