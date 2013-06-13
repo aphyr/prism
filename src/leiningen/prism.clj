@@ -9,5 +9,5 @@
   [project]
   (let [[test-paths source-paths] (map project [:test-paths :source-paths])]
     (eval/eval-in-project project
-                          `(p/autotest '~source-paths '~test-paths)
+                          `(p/autotest! '~source-paths '~test-paths)
                           '(require '[prism.core :as p]))))
