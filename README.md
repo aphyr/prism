@@ -5,11 +5,6 @@ for the project to compile. Prism recompiles and reloads files as you change
 them, and re-runs their corresponding tests immediately. Inspired by Midje's
 excellent autotest.
 
-## Why "Prism"?
-
-It may or may not be snooping on everything you write, and checking to make
-sure it's not dangerous.
-
 ## Usage
 
 Check out [Clojars](https://clojars.org/com.aphyr/prism) for the latest
@@ -28,6 +23,11 @@ project.clj.
 Then, just run `lein prism` in your project directory. It'll do a full test
 first, then as you write .clj files, it'll re-run the corresponding test
 namespace. Prism assumes your tests are named `foo.core-test`.
+
+## Why "Prism"?
+
+It may be snooping on everything you write, and checking to make sure it's not
+dangerous. Or maybe not! Exciting!
 
 ## License
 
