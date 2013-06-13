@@ -9,10 +9,14 @@
    in your :test-paths when they change."
   [project]
   ; Run tests
-  (test/test project)
+  (try
+    (test/test project)
+    (catch Throwable t nil))
   
   ; Watch for changes
   (let [[test-paths source-paths] (map project [:test-paths :source-paths])]
     (eval/eval-in-project project
                           `(p/autotest! '~source-paths '~test-paths)
-                          '(require '[com.aphyr.prism :as p]))))
+                          '(require '[com.aphyr.prism :as p])))
+
+  (deref (promise)))
