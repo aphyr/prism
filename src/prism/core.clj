@@ -5,7 +5,7 @@
 
 (defn not-deleted
   [kind file]
-  (condp = kind
+  (case kind
     :created  file
     :modified file
     :deleted  nil))
