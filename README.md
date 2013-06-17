@@ -12,8 +12,8 @@ version number, then add Prism to `~/.lein/profiles.clj`:
 
 ```
 {:user
- {:plugins [[com.aphyr/prism "0.1.0"]]
-  :dependencies [[com.aphyr/prism "0.1.0"]]}}
+ {:plugins [[com.aphyr/prism "0.1.1"]]
+  :dependencies [[com.aphyr/prism "0.1.1"]]}}
 ```
 
 You could alternatively add Prism to the dev dependencies in a given
