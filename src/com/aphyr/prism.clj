@@ -59,6 +59,40 @@
   [s]
   (s/replace s #"([^/])$" "$1/"))
 
+(defn slur
+  "Takes a unary function f, and a time in ms. Returns a function g such that
+  (g x) causes (f x) to be invoked unless (g x) had been invoked less than dt
+  ms ago."
+  [dt f]
+  ; Maintain a map of args to invocation times.
+  (let [ts (atom {})]
+    (fn g [x]
+      (let [now (System/currentTimeMillis)
+            ts  (swap! ts (fn [ts]
+                            (let [prev (get ts x)]
+                              (if (and prev (< (- now prev) dt))
+                                ts
+                                (assoc ts x now)))))
+            prev (get ts x)]
+
+        ; If we're the first to call, or it's been longer than dt ms, call f.
+        (when (or (= now prev)
+                  (<= dt (- now prev)))
+          (f x))))))
+
+(defn namespace-changed
+  "Actually reload a namespace n and call our callback."
+  [n f]
+  (locking mutex
+    (try
+      (when-let [n (reload! n)]
+        (f n))
+      (catch Throwable e
+
+        (println "Failed handling change in" file)
+        (.printStackTrace e)))
+    (flush)))
+
 (defn watch!
   "Watches directory and reloads clojure files, invoking (f namespace) after
   reloading. Returns a future."
@@ -69,18 +103,18 @@
                   (get :root dir)
                   file
                   .getCanonicalPath
-                  ensure-trailing-slash)]
-     (fe/watch-dir dir (bound-fn [kind file]
-                         (try
-                           (locking mutex
-                             (when-let [n (->> (not-deleted kind file)
-                                               (file->ns root)
-                                               reload!)]
-                               (f n)))
-                           (catch Exception e
-                             (println "Failed handling change in" file)
-                             (.printStackTrace e)))
-                         (flush))))))
+                  ensure-trailing-slash)
+         slurred-handler (slur 100 (fn [n]
+                                     (future
+                                       (Thread/sleep 100)
+                                       (namespace-changed n f))))]
+
+     (fe/watch-dir dir
+                   (fn [kind file]
+                     (when-let [n (->> (not-deleted kind file)
+                                       (file->ns root))]
+                       (slurred-handler n)))))))
+
 
 (defn autotest!
   "Watches directories and re-runs tests after reloading."
