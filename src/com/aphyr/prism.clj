@@ -104,7 +104,7 @@
                   file
                   .getCanonicalPath
                   ensure-trailing-slash)
-         slurred-handler (slur 100 (fn [n]
+         slurred-handler (slur 500 (fn [n]
                                      (future
                                        (Thread/sleep 100)
                                        (namespace-changed n f))))]
