@@ -9,9 +9,9 @@
    in your :test-paths when they change."
   [project]
   ; Run tests
-  (try
-    (test/test project)
-    (catch Throwable t nil))
+;  (try
+;    (test/test project)
+;    (catch Throwable t nil))
   
   ; Watch for changes
   (let [[test-paths source-paths] (map project [:test-paths :source-paths])]
