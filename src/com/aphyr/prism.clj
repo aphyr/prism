@@ -48,7 +48,8 @@
          (println " failed.")
          (when complain?
            (println "Failed to reload" sym)
-           (if (re-find #"\.clj\:\d+" (.getMessage e))
+           (if (and (.getMessage e) 
+                    (re-find #"\.clj\:\d+" (.getMessage e)))
              ; Looks like a line number in a file.
              (println (.getMessage e))
              ; Dunno
