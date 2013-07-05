@@ -133,4 +133,8 @@
    ; Test dirs
    (doseq [dir test-dirs]
      (watch! dir (fn [n]
-                     (test/run-tests n))))))
+                     (test/run-tests n))))
+
+   (apply println (concat ["Watching"]
+                          src-dirs
+                          test-dirs))))
