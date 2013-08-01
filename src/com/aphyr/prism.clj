@@ -105,10 +105,10 @@
                   file
                   .getCanonicalPath
                   ensure-trailing-slash)
-         slurred-handler (slur 500 (fn [n]
-                                     (future
-                                       (Thread/sleep 100)
-                                       (namespace-changed n f))))]
+         slurred-handler (slur 2000 (fn [n]
+                                      (future
+                                        (Thread/sleep 100)
+                                        (namespace-changed n f))))]
 
      (fe/watch-dir dir
                    (fn [kind file]
