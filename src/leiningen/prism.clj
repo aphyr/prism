@@ -1,6 +1,7 @@
 (ns leiningen.prism
   (:require [leiningen.core.eval :as eval]
-            [leiningen.test :as test]))
+            [leiningen.test :as test]
+            [leiningen.core.project :as project]))
 
 (defn prism
   "Automatically run tests when files change.
@@ -12,9 +13,10 @@
 ;  (try
 ;    (test/test project)
 ;    (catch Throwable t nil))
-  
+
   ; Watch for changes
-  (let [[test-paths source-paths] (map project [:test-paths :source-paths])]
+  (let [project (project/merge-profiles project [:test])
+       [test-paths source-paths] (map project [:test-paths :source-paths])]
     (eval/eval-in-project project
                           `(p/autotest! '~source-paths '~test-paths)
                           '(require '[com.aphyr.prism :as p])))
