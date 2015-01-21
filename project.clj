@@ -1,4 +1,4 @@
-(defproject com.aphyr/prism "0.1.2"
+(defproject com.aphyr/prism "0.1.3"
   :description "Re-run lein tests automatically"
   :url "http://github.com/aphyr/prism"
   :license {:name "Eclipse Public License"
