@@ -48,7 +48,7 @@
          (println " failed.")
          (when complain?
            (println "Failed to reload" sym)
-           (if (and (.getMessage e) 
+           (if (and (.getMessage e)
                     (re-find #"\.clj\:\d+" (.getMessage e)))
              ; Looks like a line number in a file.
              (println (.getMessage e))
@@ -65,21 +65,18 @@
   (g x) causes (f x) to be invoked unless (g x) had been invoked less than dt
   ms ago."
   [dt f]
-  ; Maintain a map of args to invocation times.
-  (let [ts (atom {})]
+  (let [ts (ref {})]
     (fn g [x]
-      (let [now (System/currentTimeMillis)
-            ts  (swap! ts (fn [ts]
-                            (let [prev (get ts x)]
-                              (if (and prev (< (- now prev) dt))
-                                ts
-                                (assoc ts x now)))))
-            prev (get ts x)]
-
-        ; If we're the first to call, or it's been longer than dt ms, call f.
-        (when (or (= now prev)
-                  (<= dt (- now prev)))
-          (f x))))))
+      (when (dosync
+             (let [now (System/currentTimeMillis)
+                   prev (get @ts x 0)
+                   enough-time-has-passed (> (- now prev) dt)
+                   ts (alter ts (fn [ts]
+                                  (if enough-time-has-passed
+                                    (assoc ts x now)
+                                    ts)))]
+               enough-time-has-passed))
+        (f x)))))
 
 (defn namespace-changed
   "Actually reload a namespace n and call our callback."
