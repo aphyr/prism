@@ -20,13 +20,13 @@
   [root f]
   (when f
     (let [path (.getCanonicalPath (file f))]
-      (when (re-find #"\.clj$" path)
+      (when (re-find #"\.clj[xsc]?$" path)
         (-> path
             str
             ; Strip root prefix
             (s/replace root "")
-            ; Drop clj
-            (s/replace #".clj$" "")
+            ; Drop clj (or similar clojure-related suffix)
+            (s/replace #".clj[xsc]?$" "")
             ; Underscores to dashes
             (s/replace "_" "-")
             ; Slashes to dots
@@ -49,7 +49,7 @@
          (when complain?
            (println "Failed to reload" sym)
            (if (and (.getMessage e)
-                    (re-find #"\.clj\:\d+" (.getMessage e)))
+                    (re-find #"\.clj[xsc]?\:\d+" (.getMessage e)))
              ; Looks like a line number in a file.
              (println (.getMessage e))
              ; Dunno
